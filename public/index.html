@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>x402 Services Action Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; }
+    .card { background: #1e2937; border: 1px solid #334155; border-radius: 12px; }
+    .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; }
+    .badge-success { background: #064e3b; color: #34d399; }
+    .badge-error { background: #7f1d1d; color: #f87171; }
+    .badge-critical { background: #7f1d1d; color: #fecaca; }
+    .badge-high { background: #7c2d12; color: #fdba74; }
+    .badge-medium { background: #713f12; color: #fde68a; }
+    .badge-low { background: #334155; color: #cbd5e1; }
+    .badge-info { background: #1e3a5f; color: #7dd3fc; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.85rem; }
+    th { color: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold"><span class="text-cyan-400">x402</span> Services Action Center</h1>
+        <p class="text-xs text-slate-400">admin.x402-micro-pay.com</p>
+      </div>
+      <button onclick="load()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm">Refresh</button>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div id="flags" class="flex flex-wrap gap-2"></div>
+    <section class="grid lg:grid-cols-3 gap-4">
+      <div class="card p-4 lg:col-span-1 max-h-[28rem] overflow-y-auto">
+        <h2 class="font-semibold text-cyan-300 mb-3">Needs attention</h2>
+        <div id="actions" class="space-y-3 text-sm"></div>
+      </div>
+      <div class="card p-4 max-h-[28rem] overflow-y-auto">
+        <h2 class="font-semibold mb-3">Native services</h2>
+        <table><thead><tr><th>Service</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody id="native"></tbody></table>
+      </div>
+      <div class="card p-4 max-h-[28rem] overflow-y-auto space-y-4">
+        <div>
+          <h2 class="font-semibold mb-2">Partners</h2>
+          <p class="text-xs text-slate-500 mb-2" id="partner-note"></p>
+          <table><thead><tr><th>Name</th><th>Listed</th><th>Mode</th></tr></thead>
+          <tbody id="partners"></tbody></table>
+        </div>
+        <div>
+          <h2 class="font-semibold mb-2">Getting noticed</h2>
+          <ul class="text-xs text-slate-400 space-y-1 list-disc list-inside" id="discovery"></ul>
+        </div>
+      </div>
+    </section>
+    <p class="text-center text-xs text-slate-600">Live data from production marketplace · Auto-refresh 30s</p>
+  </main>
+  <script>
+    function pb(p) {
+      const m = {critical:'badge-critical',high:'badge-high',medium:'badge-medium',low:'badge-low',info:'badge-info'};
+      return `<span class="badge ${m[p]||'badge-low'}">${p}</span>`;
+    }
+    async function load() {
+      try {
+        const res = await fetch('/api/action-center');
+        const d = await res.json();
+        const f = d.flags || {};
+        document.getElementById('flags').innerHTML = [
+          d.reachable ? '<span class="badge badge-success">marketplace up</span>' : '<span class="badge badge-error">down</span>',
+          f.x402_enabled ? '<span class="badge badge-success">x402</span>' : '<span class="badge badge-error">x402 off</span>',
+          f.stripe_enabled ? '<span class="badge badge-success">stripe</span>' : '<span class="badge badge-error">stripe off</span>',
+          f.free_beta ? '<span class="badge badge-medium">free beta</span>' : '<span class="badge badge-success">paid only</span>',
+          f.network ? `<span class="badge badge-info">${f.network}</span>` : ''
+        ].join(' ');
+        const acts = d.actions || [];
+        document.getElementById('actions').innerHTML = acts.length ? acts.map(a => `
+          <div class="border border-slate-700 rounded-lg p-3 bg-slate-900/50">
+            <div class="flex gap-2 mb-1">${pb(a.priority)}<span class="text-xs text-slate-500">${a.category}</span></div>
+            <div class="font-medium">${a.title}</div>
+            <div class="text-xs text-slate-400 mt-1">${a.detail||''}</div>
+            <div class="text-xs text-cyan-400 mt-2">→ ${a.action}</div>
+          </div>`).join('') : '<p class="text-emerald-400">All clear</p>';
+        document.getElementById('native').innerHTML = (d.native_services||[]).map(s => `
+          <tr><td>${s.name||s.id}</td><td>$${Number(s.price_usd||0).toFixed(4)}</td>
+          <td><span class="badge badge-success">${s.status||'live'}</span></td></tr>`).join('') || '<tr><td colspan="3">None</td></tr>';
+        document.getElementById('partner-note').textContent = 'Listing: ' + (d.partner_listing_status||'—') + ' · ' + (d.partner_services||[]).length + ' services';
+        document.getElementById('partners').innerHTML = (d.partner_services||[]).slice(0,15).map(s => `
+          <tr><td>${s.name||s.service_id}</td><td>$${Number(s.price_usd||0).toFixed(2)}</td>
+          <td><span class="badge ${s.status==='paid'?'badge-success':'badge-medium'}">${s.status||'—'}</span></td></tr>`).join('') || '<tr><td colspan="3">None</td></tr>';
+        const disc = (d.actions||[]).filter(a => a.category==='discovery');
+        document.getElementById('discovery').innerHTML = (disc.length ? disc.map(a => `<li><strong>${a.title}:</strong> ${a.action}</li>`) :
+          ['<li>Share /.well-known/x402 + /api/catalog</li>','<li>Keep docs + applet current</li>']).join('');
+        if (f.pay_to) document.getElementById('discovery').innerHTML += `<li>pay_to: <code class="text-cyan-300">${f.pay_to}</code></li>`;
+      } catch (e) {
+        document.getElementById('actions').innerHTML = '<p class="text-rose-400">' + e.message + '</p>';
+      }
+    }
+    load();
+    setInterval(load, 30000);
+  </script>
+</body>
+</html>
