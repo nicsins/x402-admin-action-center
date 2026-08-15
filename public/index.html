@@ -3,103 +3,564 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>x402 Services Action Center</title>
+  <title>x402 Admin Console • Cursor Layout</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: ui-sans-serif, system-ui, sans-serif; }
-    .card { background: #1e2937; border: 1px solid #334155; border-radius: 12px; }
-    .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; }
-    .badge-success { background: #064e3b; color: #34d399; }
-    .badge-error { background: #7f1d1d; color: #f87171; }
-    .badge-critical { background: #7f1d1d; color: #fecaca; }
-    .badge-high { background: #7c2d12; color: #fdba74; }
-    .badge-medium { background: #713f12; color: #fde68a; }
-    .badge-low { background: #334155; color: #cbd5e1; }
-    .badge-info { background: #1e3a5f; color: #7dd3fc; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.85rem; }
-    th { color: #94a3b8; }
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --yellow: #d29922;
+      --muted: #8b949e;
+      --text: #e6edf3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+    .app {
+      display: grid;
+      grid-template-rows: 44px 1fr 56px;
+      height: 100vh;
+    }
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    header .logo { font-weight: 600; letter-spacing: -0.02em; }
+    header .logo span { color: var(--accent); }
+    .status-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #21262d;
+    }
+    .pill.ok { border-color: #238636; color: var(--green); }
+    .pill.warn { border-color: #9e6a03; color: var(--yellow); }
+    .pill.err { border-color: #da3633; color: var(--red); }
+    .pill.info { border-color: #1f6feb; color: var(--accent); }
+
+    /* Main split */
+    .main {
+      display: grid;
+      grid-template-columns: 42% 58%;
+      min-height: 0;
+    }
+
+    /* LEFT: Agent Chat / Output */
+    .left {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      min-height: 0;
+      background: var(--bg);
+    }
+    .panel-title {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #chat-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .msg {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .msg.system { border-left: 3px solid var(--accent); }
+    .msg.agent { border-left: 3px solid var(--green); }
+    .msg.user { border-left: 3px solid var(--yellow); }
+    .msg .meta {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .msg pre {
+      margin: 6px 0 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #c9d1d9;
+    }
+
+    /* RIGHT side: Admin + Terminal stacked */
+    .right {
+      display: grid;
+      grid-template-rows: 1fr 220px;
+      min-height: 0;
+    }
+    .admin-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .metric-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .metric-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .metric-card .value { font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+    .metric-card .value.green { color: var(--green); }
+    .metric-card .value.red { color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin: 14px 0 6px;
+    }
+    .action-item {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: #0d1117;
+    }
+    .action-item .title { font-weight: 500; }
+    .action-item .detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .action-item .next { font-size: 11px; color: var(--accent); margin-top: 4px; }
+
+    /* Terminal */
+    .terminal {
+      display: flex;
+      flex-direction: column;
+      background: #010409;
+      min-height: 0;
+    }
+    #term-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #8b949e;
+    }
+    #term-log .line { margin-bottom: 2px; }
+    #term-log .line.ok { color: var(--green); }
+    #term-log .line.err { color: var(--red); }
+    #term-log .line.info { color: var(--accent); }
+    #term-log .line.warn { color: var(--yellow); }
+
+    /* Bottom input bar */
+    .input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    .input-bar textarea {
+      flex: 1;
+      resize: none;
+      height: 36px;
+      max-height: 80px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .input-bar textarea:focus { border-color: var(--accent); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #30363d; }
+    .btn.primary {
+      background: #238636;
+      border-color: #238636;
+      color: #fff;
+    }
+    .btn.primary:hover { background: #2ea043; }
+    .btn.ghost { background: transparent; }
+    #file-input { display: none; }
+    .file-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #1f6feb33;
+      color: var(--accent);
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+      .left { border-right: none; border-bottom: 1px solid var(--border); }
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-xl font-bold"><span class="text-cyan-400">x402</span> Services Action Center</h1>
-        <p class="text-xs text-slate-400">admin.x402-micro-pay.com</p>
+<body>
+  <div class="app">
+    <!-- HEADER -->
+    <header>
+      <div class="logo"><span>x402</span> Admin Console</div>
+      <div class="status-pills" id="status-pills">
+        <span class="pill">loading…</span>
       </div>
-      <button onclick="load()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm">Refresh</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn ghost" onclick="refreshAll()" title="Refresh data">↻ Refresh</button>
+        <span style="font-size:11px;color:var(--muted)" id="last-updated">—</span>
+      </div>
+    </header>
+
+    <!-- MAIN: Left chat + Right admin/terminal -->
+    <div class="main">
+      <!-- LEFT: Agent Chat / Output -->
+      <div class="left">
+        <div class="panel-title">
+          <span>Agent Chat / Output</span>
+          <span style="font-weight:400;text-transform:none;letter-spacing:0">services · chats · status</span>
+        </div>
+        <div id="chat-log">
+          <div class="msg system">
+            <div class="meta">SYSTEM · just now</div>
+            <div>x402 Admin Console ready. Live marketplace data will stream here. Use the input below to query status, trigger checks, or attach files / MCP context.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Admin Window + Terminal -->
+      <div class="right">
+        <div class="admin-pane">
+          <div class="panel-title">
+            <span>Admin Window</span>
+            <span style="font-weight:400;text-transform:none;letter-spacing:0">services · revenue · health</span>
+          </div>
+          <div class="admin-body" id="admin-body">
+            <div class="metrics" id="metrics">
+              <div class="metric-card"><div class="label">Reachable</div><div class="value" id="m-reachable">—</div></div>
+              <div class="metric-card"><div class="label">Native Skills</div><div class="value" id="m-skills">—</div></div>
+              <div class="metric-card"><div class="label">Partners</div><div class="value" id="m-partners">—</div></div>
+              <div class="metric-card"><div class="label">Actions</div><div class="value" id="m-actions">—</div></div>
+            </div>
+
+            <div class="section-title">Needs Attention</div>
+            <div id="actions-list"><p style="color:var(--muted);font-size:12px">Loading…</p></div>
+
+            <div class="section-title">Native Services</div>
+            <table>
+              <thead><tr><th>Service</th><th>Price</th><th>Status</th></tr></thead>
+              <tbody id="native-tbody"></tbody>
+            </table>
+
+            <div class="section-title">Partner Services (sample)</div>
+            <table>
+              <thead><tr><th>Name</th><th>Price</th><th>Mode</th></tr></thead>
+              <tbody id="partner-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal">
+          <div class="panel-title" style="background:#010409;border-bottom-color:#21262d">
+            <span>Terminal</span>
+            <span style="font-weight:400;text-transform:none;letter-spacing:0">logs · commands</span>
+          </div>
+          <div id="term-log"></div>
+        </div>
+      </div>
     </div>
-  </header>
-  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-    <div id="flags" class="flex flex-wrap gap-2"></div>
-    <section class="grid lg:grid-cols-3 gap-4">
-      <div class="card p-4 lg:col-span-1 max-h-[28rem] overflow-y-auto">
-        <h2 class="font-semibold text-cyan-300 mb-3">Needs attention</h2>
-        <div id="actions" class="space-y-3 text-sm"></div>
-      </div>
-      <div class="card p-4 max-h-[28rem] overflow-y-auto">
-        <h2 class="font-semibold mb-3">Native services</h2>
-        <table><thead><tr><th>Service</th><th>Price</th><th>Status</th></tr></thead>
-        <tbody id="native"></tbody></table>
-      </div>
-      <div class="card p-4 max-h-[28rem] overflow-y-auto space-y-4">
-        <div>
-          <h2 class="font-semibold mb-2">Partners</h2>
-          <p class="text-xs text-slate-500 mb-2" id="partner-note"></p>
-          <table><thead><tr><th>Name</th><th>Listed</th><th>Mode</th></tr></thead>
-          <tbody id="partners"></tbody></table>
-        </div>
-        <div>
-          <h2 class="font-semibold mb-2">Getting noticed</h2>
-          <ul class="text-xs text-slate-400 space-y-1 list-disc list-inside" id="discovery"></ul>
-        </div>
-      </div>
-    </section>
-    <p class="text-center text-xs text-slate-600">Live data from production marketplace · Auto-refresh 30s</p>
-  </main>
+
+    <!-- BOTTOM INPUT BAR -->
+    <div class="input-bar">
+      <button class="btn" onclick="document.getElementById('file-input').click()" title="Upload file">📎 File</button>
+      <input type="file" id="file-input" multiple />
+      <button class="btn" onclick="addMcpContext()" title="Attach MCP context">MCP</button>
+      <span id="file-chip" class="file-chip" style="display:none"></span>
+      <textarea id="user-input" placeholder="Ask about services, revenue, health… or type a command (e.g. status, refresh, health)" rows="1"></textarea>
+      <button class="btn primary" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
   <script>
-    function pb(p) {
-      const m = {critical:'badge-critical',high:'badge-high',medium:'badge-medium',low:'badge-low',info:'badge-info'};
-      return `<span class="badge ${m[p]||'badge-low'}">${p}</span>`;
+    // ---------- State ----------
+    let lastData = null;
+    let attachedFiles = [];
+    let mcpAttached = false;
+
+    // ---------- Terminal helpers ----------
+    function term(msg, cls = '') {
+      const el = document.getElementById('term-log');
+      const line = document.createElement('div');
+      line.className = 'line ' + cls;
+      const ts = new Date().toLocaleTimeString();
+      line.textContent = `[${ts}] ${msg}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
     }
-    async function load() {
+
+    // ---------- Chat helpers ----------
+    function chat(role, text, isPre = false) {
+      const el = document.getElementById('chat-log');
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = role.toUpperCase() + ' · ' + new Date().toLocaleTimeString();
+      div.appendChild(meta);
+      if (isPre) {
+        const pre = document.createElement('pre');
+        pre.textContent = text;
+        div.appendChild(pre);
+      } else {
+        const body = document.createElement('div');
+        body.textContent = text;
+        div.appendChild(body);
+      }
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // ---------- Priority badge ----------
+    function pb(p) {
+      const colors = {
+        critical: 'err',
+        high: 'warn',
+        medium: 'warn',
+        low: 'info',
+        info: 'info'
+      };
+      return `<span class="pill ${colors[p] || 'info'}">${p}</span>`;
+    }
+
+    // ---------- Load live data ----------
+    async function loadActionCenter() {
+      term('Fetching /api/action-center …', 'info');
       try {
         const res = await fetch('/api/action-center');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         const d = await res.json();
-        const f = d.flags || {};
-        document.getElementById('flags').innerHTML = [
-          d.reachable ? '<span class="badge badge-success">marketplace up</span>' : '<span class="badge badge-error">down</span>',
-          f.x402_enabled ? '<span class="badge badge-success">x402</span>' : '<span class="badge badge-error">x402 off</span>',
-          f.stripe_enabled ? '<span class="badge badge-success">stripe</span>' : '<span class="badge badge-error">stripe off</span>',
-          f.free_beta ? '<span class="badge badge-medium">free beta</span>' : '<span class="badge badge-success">paid only</span>',
-          f.network ? `<span class="badge badge-info">${f.network}</span>` : ''
-        ].join(' ');
-        const acts = d.actions || [];
-        document.getElementById('actions').innerHTML = acts.length ? acts.map(a => `
-          <div class="border border-slate-700 rounded-lg p-3 bg-slate-900/50">
-            <div class="flex gap-2 mb-1">${pb(a.priority)}<span class="text-xs text-slate-500">${a.category}</span></div>
-            <div class="font-medium">${a.title}</div>
-            <div class="text-xs text-slate-400 mt-1">${a.detail||''}</div>
-            <div class="text-xs text-cyan-400 mt-2">→ ${a.action}</div>
-          </div>`).join('') : '<p class="text-emerald-400">All clear</p>';
-        document.getElementById('native').innerHTML = (d.native_services||[]).map(s => `
-          <tr><td>${s.name||s.id}</td><td>$${Number(s.price_usd||0).toFixed(4)}</td>
-          <td><span class="badge badge-success">${s.status||'live'}</span></td></tr>`).join('') || '<tr><td colspan="3">None</td></tr>';
-        document.getElementById('partner-note').textContent = 'Listing: ' + (d.partner_listing_status||'—') + ' · ' + (d.partner_services||[]).length + ' services';
-        document.getElementById('partners').innerHTML = (d.partner_services||[]).slice(0,15).map(s => `
-          <tr><td>${s.name||s.service_id}</td><td>$${Number(s.price_usd||0).toFixed(2)}</td>
-          <td><span class="badge ${s.status==='paid'?'badge-success':'badge-medium'}">${s.status||'—'}</span></td></tr>`).join('') || '<tr><td colspan="3">None</td></tr>';
-        const disc = (d.actions||[]).filter(a => a.category==='discovery');
-        document.getElementById('discovery').innerHTML = (disc.length ? disc.map(a => `<li><strong>${a.title}:</strong> ${a.action}</li>`) :
-          ['<li>Share /.well-known/x402 + /api/catalog</li>','<li>Keep docs + applet current</li>']).join('');
-        if (f.pay_to) document.getElementById('discovery').innerHTML += `<li>pay_to: <code class="text-cyan-300">${f.pay_to}</code></li>`;
+        lastData = d;
+        renderAll(d);
+        term('Action center OK — marketplace ' + (d.reachable ? 'reachable' : 'DOWN'), d.reachable ? 'ok' : 'err');
+        document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
       } catch (e) {
-        document.getElementById('actions').innerHTML = '<p class="text-rose-400">' + e.message + '</p>';
+        term('Error: ' + e.message, 'err');
+        chat('system', 'Failed to load live data: ' + e.message);
       }
     }
-    load();
-    setInterval(load, 30000);
+
+    function renderAll(d) {
+      const f = d.flags || {};
+
+      // Status pills in header
+      const pills = [];
+      pills.push(`<span class="pill ${d.reachable ? 'ok' : 'err'}">${d.reachable ? 'marketplace up' : 'DOWN'}</span>`);
+      pills.push(`<span class="pill ${f.x402_enabled ? 'ok' : 'err'}">x402</span>`);
+      pills.push(`<span class="pill ${f.stripe_enabled ? 'ok' : 'err'}">stripe</span>`);
+      pills.push(`<span class="pill ${f.free_beta ? 'warn' : 'ok'}">${f.free_beta ? 'free beta' : 'paid only'}</span>`);
+      if (f.network) pills.push(`<span class="pill info">${f.network}</span>`);
+      document.getElementById('status-pills').innerHTML = pills.join('');
+
+      // Metrics
+      document.getElementById('m-reachable').textContent = d.reachable ? 'YES' : 'NO';
+      document.getElementById('m-reachable').className = 'value ' + (d.reachable ? 'green' : 'red');
+      document.getElementById('m-skills').textContent = (d.native_services || []).length;
+      document.getElementById('m-partners').textContent = (d.partner_services || []).length;
+      document.getElementById('m-actions').textContent = (d.actions || []).length;
+
+      // Actions
+      const acts = d.actions || [];
+      const actsEl = document.getElementById('actions-list');
+      if (!acts.length) {
+        actsEl.innerHTML = '<p style="color:var(--green);font-size:12px">All clear — no critical actions</p>';
+      } else {
+        actsEl.innerHTML = acts.map(a => `
+          <div class="action-item">
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:2px">${pb(a.priority)} <span style="font-size:11px;color:var(--muted)">${a.category || ''}</span></div>
+            <div class="title">${a.title || ''}</div>
+            <div class="detail">${a.detail || ''}</div>
+            <div class="next">→ ${a.action || ''}</div>
+          </div>
+        `).join('');
+      }
+
+      // Native services
+      document.getElementById('native-tbody').innerHTML = (d.native_services || []).map(s => `
+        <tr>
+          <td>${s.name || s.id}</td>
+          <td>$${Number(s.price_usd || 0).toFixed(4)}</td>
+          <td><span class="pill ok">${s.status || 'live'}</span></td>
+        </tr>
+      `).join('') || '<tr><td colspan="3" style="color:var(--muted)">None</td></tr>';
+
+      // Partners (first 12)
+      document.getElementById('partner-tbody').innerHTML = (d.partner_services || []).slice(0, 12).map(s => `
+        <tr>
+          <td>${s.name || s.service_id || '—'}</td>
+          <td>$${Number(s.price_usd || 0).toFixed(3)}</td>
+          <td><span class="pill ${s.status === 'paid' ? 'ok' : 'warn'}">${s.status || '—'}</span></td>
+        </tr>
+      `).join('') || '<tr><td colspan="3" style="color:var(--muted)">None</td></tr>';
+    }
+
+    // ---------- User input ----------
+    function sendMessage() {
+      const ta = document.getElementById('user-input');
+      const text = (ta.value || '').trim();
+      if (!text && !attachedFiles.length && !mcpAttached) return;
+
+      let display = text;
+      if (attachedFiles.length) display += (display ? '\n' : '') + '[files: ' + attachedFiles.map(f => f.name).join(', ') + ']';
+      if (mcpAttached) display += (display ? '\n' : '') + '[MCP context attached]';
+
+      chat('user', display);
+      ta.value = '';
+      document.getElementById('file-chip').style.display = 'none';
+      const filesCopy = [...attachedFiles];
+      attachedFiles = [];
+      mcpAttached = false;
+
+      // Simple command routing
+      const cmd = text.toLowerCase().trim();
+      if (cmd === 'status' || cmd === 'refresh' || cmd === 'health' || cmd === '') {
+        refreshAll();
+        chat('agent', 'Refreshing live marketplace status…');
+        return;
+      }
+      if (cmd.startsWith('service ') || cmd === 'services') {
+        const list = (lastData?.native_services || []).map(s => `${s.id}  $${s.price_usd}  (${s.status})`).join('\n');
+        chat('agent', 'Native services:\n' + (list || 'none'), true);
+        return;
+      }
+      if (cmd === 'revenue' || cmd === 'money' || cmd === 'making any') {
+        chat('agent', 'Revenue metrics require a connected DATABASE_URL on a long-running host.\nCurrent serverless Action Center shows service inventory + health only.\nLive flags: x402=' + !!lastData?.flags?.x402_enabled + ', stripe=' + !!lastData?.flags?.stripe_enabled + ', paid-only=' + !lastData?.flags?.free_beta);
+        return;
+      }
+      if (cmd === 'help') {
+        chat('agent', 'Commands: status | refresh | health | services | revenue | help\nYou can also attach files or MCP context and describe what you need.');
+        return;
+      }
+
+      // Default agent reply (status summary)
+      const d = lastData;
+      if (d) {
+        chat('agent', `Marketplace reachable: ${d.reachable}\nNative skills: ${(d.native_services||[]).length}\nPartner services: ${(d.partner_services||[]).length}\nOpen actions: ${(d.actions||[]).length}\nNetwork: ${d.flags?.network || '—'}\nPay-to: ${d.flags?.pay_to || '—'}`);
+      } else {
+        chat('agent', 'No data loaded yet. Type "refresh" or wait for auto-load.');
+      }
+      if (filesCopy.length) {
+        term('Received file(s): ' + filesCopy.map(f => f.name).join(', '), 'info');
+        chat('system', 'File upload noted (server-side processing not wired in this static console). Names: ' + filesCopy.map(f => f.name).join(', '));
+      }
+    }
+
+    // File + MCP
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      attachedFiles = Array.from(e.target.files || []);
+      const chip = document.getElementById('file-chip');
+      if (attachedFiles.length) {
+        chip.textContent = attachedFiles.length === 1 ? attachedFiles[0].name : attachedFiles.length + ' files';
+        chip.style.display = 'inline-block';
+        term('Attached ' + attachedFiles.length + ' file(s)', 'info');
+      } else {
+        chip.style.display = 'none';
+      }
+    });
+
+    function addMcpContext() {
+      mcpAttached = true;
+      const chip = document.getElementById('file-chip');
+      chip.textContent = (chip.textContent ? chip.textContent + ' + ' : '') + 'MCP';
+      chip.style.display = 'inline-block';
+      term('MCP context flag set for next message', 'info');
+      chat('system', 'MCP context will be attached to the next message you send.');
+    }
+
+    // Enter to send (Shift+Enter for newline)
+    document.getElementById('user-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function refreshAll() {
+      loadActionCenter();
+    }
+
+    // Boot
+    term('x402 Admin Console (Cursor layout) booted', 'ok');
+    term('Auto-refresh every 30s', 'info');
+    loadActionCenter();
+    setInterval(loadActionCenter, 30000);
   </script>
 </body>
 </html>
